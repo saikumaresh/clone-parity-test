@@ -1,0 +1,4 @@
+// CARVED Ire: FunctionDeclaration chars 524415-525193
+function Ire(e,t={},n){var r=t.delimiter?t.delimiter:`,`,i=[],a=[];e.forEach(e=>{var t=[];switch(e.type){case`group`:console.warn(`Download Warning - CSV downloader cannot process row groups`);break;case`calc`:console.warn(`Download Warning - CSV downloader cannot process column calculations`);break;case`header`:e.columns.forEach((e,t)=>{e&&e.depth===1&&(a[t]=e.value===void 0||e.value===null?``:`"`+String(e.value).split(`"`).join(`""`)+`"`)});break;case`row`:e.columns.forEach(e=>{if(e){switch(typeof e.value){case`object`:e.value=e.value===null?``:JSON.stringify(e.value);break;case`undefined`:e.value=``;break}t.push(`"`+String(e.value).split(`"`).join(`""`)+`"`)}}),i.push(t.join(r));break}}),a.length&&i.unshift(a.join(r)),i=i.join(`
+`),t.bom&&(i=`﻿`+i),n(i,`text/csv`)}
+module.exports={Ire};

@@ -1,0 +1,11 @@
+import { createRequire } from 'module'; import fs from 'fs'; import os from 'os'; import path from 'path';
+const { CsvExporter } = createRequire(import.meta.url)('./original.bundle.cjs');
+const rows = [['foo'], ['bar'], ['ba\nz']]; const cols = [{ columnName: 'name', dataType: 'varchar(255)' }];
+const cur = { pos: 0, columns: cols, async start(){}, async read(){ const r = rows.slice(this.pos, this.pos+1); this.pos += r.length; return r; }, async close(){} };
+const conn = { connectionType: 'sqlite', async selectTopStream(){ return { columns: cols, cursor: cur }; } };
+const f = path.join(os.tmpdir(), 'ctl.csv');
+const ex = new CsvExporter(f, conn, { name: 'toexport' }, '', '', [], { deleteOnAbort: true, chunkSize: 1 }, { header: true, delimiter: ',' });
+await ex.exportToFile();
+const got = fs.readFileSync(f, 'utf8'); console.log('upstream csv.spec.js expectation reproduced:', got === 'name\nfoo\nbar\n"ba\nz"\n', JSON.stringify(got));
+const a = fs.readFileSync('/home/claude/rea-test/parity/out/original/bigint.csv'); const b = Buffer.from(a); b[b.length-2] ^= 1;
+console.log('negative control (1 flipped byte) detected:', Buffer.compare(a, b) !== 0);

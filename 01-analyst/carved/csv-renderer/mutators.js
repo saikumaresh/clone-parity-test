@@ -1,0 +1,7 @@
+// stand-ins for bundle-internal helpers: Oy=stringifyWithBigInt-like, vpe=friendlyJsonObject-like
+const U={default:require("lodash")};const e1e=console;const Oy=(v)=>JSON.stringify(v,(k,x)=>typeof x==="bigint"?`${x}n`:x);const vpe=(v)=>v;
+// CARVED t1e: FunctionDeclaration chars 3723031-3723090
+function t1e(e){return(`00000000`+e.toString(2)).slice(-8)}
+var // CARVED n1e: VariableDeclarator chars 3723094-3724191
+n1e={resolveTabulatorMutator(e,t){let n=this.resolveDataMutator(e,t,!0);return e=>n(e,!0)},resolveDataMutator(e,t,n=!1){return e&&e===`bit(1)`?this.bit1Mutator.bind(this):e&&e.startsWith(`bit`)?this.bitMutator.bind(this,t):e&&e.startsWith(`json`)&&n?this.jsonMutator.bind(this):this.genericMutator.bind(this)},mutateRow(e,t=[],n=!1,r){return U.default.isObject(e)&&(e=Object.values(e)),e.map((e,i)=>{let a=t[i];return this.resolveDataMutator(a,r)(e,n)})},genericMutator(e,t=!1){let n=n1e.genericMutator;return ArrayBuffer.isView(e)?e:typeof e==`bigint`?Number(e):U.default.isDate(e)?e.toISOString():U.default.isArray(e)?t?e.map(e=>n(e,t)):Oy(e):U.default.isObject(e)?t?U.default.mapValues(e,e=>n(e,t)):Oy(e):(U.default.isBoolean(e),e)},bit1Mutator(e){return e?U.default.isNumber(e)?e:Number(e[0]):0},bitMutator(e,t){if(!t||e&&e===`sqlserver`||U.default.isString(t))return t;let n=[];for(let e=0;e<t.length;e++)n.push(t[e]);return`b'${n.map(e=>t1e(e)).join(``)}'`},jsonMutator(e){if(!U.default.isObject(e))return e;try{return vpe(e)}catch(t){return e1e.debug(`error stringifying json: ${t}`,e),e}}};
+module.exports={n1e};

@@ -1,0 +1,2835 @@
+# rea address-to-file-offset
+
+Resolve an analysis address to its original file byte offset
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local executable path |
+| `address` | `string` | yes | Exact provider memory address |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea analyze
+
+Get an overview of an app
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App, program, or analysis database path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--snapshot` | `string` |  | Load and update a local analysis snapshot |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+| `--integrityPolicy` | `string` |  | Behavior when declared application integrity does not match |
+| `--sourcePath` | `array` |  | Exact inventoried file path relative to the application root; repeat to select several. No implicit dependencies. |
+| `--sourcePathsJson` | `string` |  | Inline JSON array or JSON file path of exact inventoried file paths relative to the application root, selected after any --source-path values. Use a file for selections that exceed the host command-line limit. |
+
+# rea analyze-javascript-application
+
+Statically reconstruct a local JavaScript/Electron application
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | ASAR or extracted application path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--view` | `string` |  | JSON javascript-routes view; requires --detail summary and --evidence_output |
+| `--maxSemanticNodes` | `number` |  | Maximum retained semantic nodes across the application; defaults to 100000. Worker heap and parent result admission remain enforced. |
+| `--maxSemanticNodesPerFile` | `number` |  | Maximum retained semantic nodes per source file; defaults to 20000, additionally bounded by max_semantic_nodes and memory/transfer limits. |
+| `--maxSemanticUnknowns` | `number` |  | Maximum retained semantic unknown records across the application; defaults to 100000. Omitted emission occurrences are counted by family and reason. |
+| `--maxSemanticUnknownsPerFile` | `number` |  | Maximum retained semantic unknown records per source file; defaults to 20000, additionally bounded by max_semantic_unknowns and memory/transfer limits. |
+| `--sourcePath` | `array` |  | Exact inventoried file path relative to the application root; repeat to select several. No implicit dependencies. |
+| `--sourcePathsJson` | `string` |  | Inline JSON array or JSON file path of exact inventoried file paths relative to the application root, selected after any --source-path values. Use a file for selections that exceed the host command-line limit. |
+| `--maxHeapMb` | `number` |  | Maximum V8 old-space heap in MiB for the isolated JavaScript source analyzer; defaults to 1024. This does not change the CLI/MCP process heap. When REA runs on Bun, which ignores V8 heap flags, Windows instead limits the analyzer's committed memory to this budget plus a 512 MiB runtime reserve; other Bun hosts enforce no limit. |
+| `--analysisTimeoutMs` | `number` |  | Maximum startup, analysis and transfer time per JavaScript source, in milliseconds; defaults to 300000. On timeout, return collected partial Evidence and stop the analysis. |
+| `--artifactFormat` | `string` | `auto` | Application artifact format |
+| `--integrityPolicy` | `string` | `fail` | Behavior when declared application integrity does not match |
+
+# rea analyze-web-bundle
+
+Capture and statically analyze a page bundle, defaulting to the selected target origin
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Loopback CDP HTTP endpoint or browser WebSocket URL |
+| `targetId` | `string` | yes | Target ID from list-browser-targets |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--allowedOrigins` | `array` |  | Optional exact-origin filter |
+| `--commandTimeoutMs` | `number` |  | CDP WebSocket handshake and per-command response deadline in milliseconds (default 20000). Omitted means 20000 and applies on the next call. deadlineExpired for a handshake or command is not the caller observation window, not the 10000 ms CDP discovery response deadline, and not the 5000 ms cleanup grace. It also bounds passive script-source collection and the inspection/source-join phase that share this deadline. Does not raise the fixed protocol, retained-event, or source byte budgets. CDP discovery and cleanup grace have no runtime override. |
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--view` | `string` |  | JSON javascript-routes view; requires --detail summary and --evidence_output |
+| `--observationMs` | `number` | `500` | Observation duration in milliseconds |
+| `--fetchSourceMaps` | `boolean` | `false` | Fetch source maps referenced by captured scripts |
+| `--maxHeapMb` | `number` |  | Heap phase: maximum V8 old-space for the isolated inert-script analyzer, in MiB (default 1024, range 128..16384). Omitted means 1024 and applies on the next call. This is not a total process RSS limit, not analysis_timeout_ms, and not total_analysis_timeout_ms. Bun ignores V8 flags; Windows Bun uses an owned process commit limit plus a 512 MiB runtime reserve, while other Bun hosts have no enforced memory limit. Raising max_heap_mb does not raise the fixed worker protocol or result byte budgets. |
+| `--analysisTimeoutMs` | `number` |  | Per-script deadline phase: maximum startup, analysis and result transfer time for one captured script, in milliseconds (default 30000, range 1..2147483647). Omitted means 30000. deadlineExpired for one script is not total_analysis_timeout_ms. A per-script value above the effective total is rejected. Timed-out scripts are explicit unknowns and other scripts may still be analyzed. Applies on the next call. |
+| `--totalAnalysisTimeoutMs` | `number` |  | Total analysis deadline phase: maximum time for all captured-script analysis, in milliseconds (default 300000, range 1..2147483647). Omitted means 300000. This is not the per-script analysis_timeout_ms, not capture, and not source-map fetch. A per-script timeout above this total is rejected. Unstarted scripts remain explicit unknowns. Applies on the next call. |
+| `--sourceMapFetchTimeoutMs` | `number` |  | Source-map fetch deadline in milliseconds (default 30000). Omitted means 30000 and applies on the next fetch. A fetch overrun is an item limitation (fetch_failed), not a thrown analysis timeout. Does not raise the fixed 64 MiB response budget or the source-map decode deadline. The response budget has no runtime override. |
+
+# rea annotate-native-function
+
+Edit function annotations and return refreshed analysis
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local executable path |
+| `procedure` | `string` | yes | Exact function entry address or unique name |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--name` | `string` |  | Analyst function name |
+| `--comment` | `string` |  | Regular entry comment; empty text clears it |
+| `--inline-comment` | `string` |  | Inline entry comment; empty text clears it |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea build-reconstruction-obligation-ledger
+
+Generate a deterministic Evidence-backed reconstruction obligation ledger page
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea capabilities
+
+List provider capabilities and side effects
+
+# rea capture-adb-screen
+
+Capture one screen frame as a digested PNG
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--output-directory` | `string` |  | Local directory for screen.png |
+
+# rea capture-browser-scenario
+
+Run one bounded Playwright browser scenario and return Evidence
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline browser scenario JSON or JSON file path |
+
+# rea capture-electron-scenario
+
+Run one owned Electron scenario with cancellable actions
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline JSON or a JSON file matching capture_electron_scenario |
+
+# rea capture-native-ui-scenario
+
+Run declarative AX actions or waits in one exact native application window
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local native executable or app path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--pid` | `number` |  | Existing application PID |
+| `--windowId` | `number` |  | Exact selected application window ID |
+| `--screenshot` | `boolean` | `true` | Capture only the selected window |
+| `--accessibility` | `boolean` | `true` | Read the selected window accessibility tree |
+| `--maxNodes` | `number` | `500` | Maximum accessibility nodes per capture |
+| `--nativeUiDeadlineMs` | `number` |  | Deadline in milliseconds for this UI observation or scenario, including helper preparation and captures. Omitted means 180000. Integer from 1 to 2147483647. Applies on the next call. Does not raise the fixed 67108864-byte scenario output allowance or the 180000 ms cap on one wait step. A partial observation may already be retained when this deadline expires. |
+| `--steps` | `string` |  | Required JSON array of one or more declarative AX actions or waits |
+
+# rea capture-process
+
+Capture one caller-selected process scenario
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `scenario` | `string` | yes | Scenario JSON path |
+
+# rea capture-web-screenshot
+
+Capture one visible page viewport within the supplied origin scope
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Loopback CDP HTTP endpoint or browser WebSocket URL |
+| `targetId` | `string` | yes | Target ID from list-browser-targets |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--allowedOrigins` | `array` |  | Optional exact-origin filter |
+| `--commandTimeoutMs` | `number` |  | CDP WebSocket handshake and per-command response deadline in milliseconds (default 20000). Omitted means 20000 and applies on the next call. deadlineExpired for a handshake or command is not the caller observation window, not the 10000 ms CDP discovery response deadline, and not the 5000 ms cleanup grace. It also bounds passive script-source collection and the inspection/source-join phase that share this deadline. Does not raise the fixed protocol, retained-event, or source byte budgets. CDP discovery and cleanup grace have no runtime override. |
+
+# rea collect-adb-bugreport
+
+Collect and digest one device-generated bugreport archive
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--output-directory` | `string` |  | Local directory for the bugreport zip |
+
+# rea compare
+
+Compare two canonical Evidence bundles
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `left` | `string` | yes | Left Evidence bundle JSON path |
+| `right` | `string` | yes | Right Evidence bundle JSON path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--record_pairs` | `string` |  | JSON array of explicit left_evidence_id/right_evidence_id observation pairs |
+
+# rea compare-application-versions
+
+Compare two authenticated JavaScript Application Graph versions
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea compare-javascript-export-shapes
+
+Compare exact static JavaScript export return shapes without execution
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea compare-managed-members
+
+Compare managed PE/CLI member inventories by exact declared type, name, and signature; names alone never form a match
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `leftPath` | `string` | yes | Baseline managed PE executable or assembly |
+| `rightPath` | `string` | yes | Candidate managed PE executable or assembly |
+
+# rea compare-process-captures
+
+Compare two process capture Evidence JSON files
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `left` | `string` | yes | Left capture Evidence JSON path |
+| `right` | `string` | yes | Right capture Evidence JSON path |
+| `traceSpec` | `string` | no | Optional partial-order or finite-trace specification path |
+
+# rea compare-source-to-bundle
+
+Compare historical source (inline graph or reference {kind:file,path}) with authenticated application Evidence. Save the complete JSON to query with inspect-analysis-view.
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea compare-wasm-interfaces
+
+Compare core WASM interfaces from two exact inspection Evidence records
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `input` | `string` | yes | Inline JSON or input file containing left/right complete Evidence and required scope |
+
+# rea compare-web-captures
+
+Compare two normalized passive captures or recorded browser scenarios
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `beforeJson` | `string` | yes | Earlier normalized web capture JSON or JSON file path |
+| `afterJson` | `string` | yes | Later normalized web capture JSON or JSON file path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--normalizationJson` | `string` | `{"rules":[]}` | Recorded literal normalization policy JSON or JSON file path for browser scenarios |
+
+# rea compare-web-screenshots
+
+Compare two self-verifying PNG artifact JSON values
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `beforeJson` | `string` | yes | Earlier screenshot artifact JSON or JSON file path |
+| `afterJson` | `string` | yes | Later screenshot artifact JSON or JSON file path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--channelThreshold` | `number` | `0` | Per-channel difference threshold for changed pixels |
+
+# rea cutter-command
+
+Execute one Rizin command in a selected live Cutter instance
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `sessionId` | `string` | yes | Session ID copied from list-cutter-sessions. |
+| `expectedGeneration` | `number` | yes | Session generation returned by list-cutter-sessions. |
+| `command` | `string` | yes | One unrestricted Rizin command to run in Cutter. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--jsonOutput` | `boolean` |  | Return command-specific JSON output when available (independent of CLI output formatting). |
+| `--json` | `boolean` |  | Deprecated compatibility input: use --json-output; pass --json=true or --json=false (bare --json formats CLI output). |
+
+# rea debug-with-gdb
+
+Run one unrestricted GDB console command in an ephemeral MI session; provide an inferior TTY so a live target can be safely detached
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `command` | `string` | yes | One unrestricted GDB console command. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--inferiorTty` | `string` |  | Caller-selected durable TTY for output from a live GDB inferior. |
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+
+# rea debug-with-rizin
+
+Run one unrestricted Rizin debugger command in an ephemeral session
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Path to the local artifact to debug. |
+| `command` | `string` | yes | One unrestricted Rizin debugger command. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--inferiorTty` | `string` |  | Caller-selected Linux TTY for inferior stdout and stderr. |
+| `--backend` | `string` |  | Optional Rizin IO debugger backend name. |
+
+# rea decode-android-resources
+
+Decode one APK's manifest, metadata, and string resources with apktool
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local APK file to decode |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--locale` | `string` |  | Project strings from res/values-<locale>/strings.xml instead of the default table |
+| `--string-tables-only` | `boolean` |  | Return selected strings only in string_tables, leaving top-level strings empty. Omit to preserve the primary strings field. |
+| `--locales` | `array` |  | Repeat to project multiple localized string tables, e.g. --locales de --locales pt-BR |
+| `--decodeTimeoutMs` | `number` |  | Decode wall-clock budget in milliseconds (default 600000), from apktool d start through process exit. Omitted means 600000. Applies on the next decode. Does not raise the fixed output capture allowance or the version probe. |
+| `--strings` | `boolean` | `true` | Include string resources; use --no-strings to skip projecting them |
+
+# rea decode-interface-builder
+
+Decode compiled storyboard and nib archives from an app bundle
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Apple .app bundle path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxDocuments` | `number` | `64` | Maximum archives to decode |
+| `--maxObjects` | `number` | `20000` | Maximum graph objects |
+| `--maxConnections` | `number` | `40000` | Maximum decoded connections |
+
+# rea decode-signal-recording
+
+Decode an existing signal recording with caller-supplied sigrok
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local signal recording |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--decoders` | `string` |  | sigrok decoder stack, options and channel assignments, e.g. uart:rx=RX:baudrate=9600 |
+| `--input_format` | `unknown` | `null` | Explicit sigrok input format and options; omitted means autodetection |
+| `--annotations` | `unknown` | `null` | Optional annotation selection, e.g. uart=rx-data |
+| `--line_offset` | `number` | `0` | Skip this many literal LF-separated output lines; default 0 |
+| `--line_limit` | `number` |  | Returned output lines per page; default 50 |
+| `--all_lines` | `boolean` | `false` | Return all remaining output lines instead of a bounded page |
+
+# rea decompile
+
+Read one part of an app as code. Supply at least one of the positional address or --procedure. Alternatively, use --file-offset alone. Equal positional and --procedure values are accepted; conflicts fail.
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App or program path |
+| `address` | `string` | no | Procedure name or address. Supply at least one of the positional address or --procedure. Alternatively, use --file-offset alone. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--procedure` | `string` |  | Procedure name or address; use --procedure=<value> for leading dashes. Supply at least one of the positional address or --procedure. Alternatively, use --file-offset alone. |
+| `--file-offset` | `string` |  | Ghidra source-file byte offset; mapped internally to an analysis address. Supply at least one of the positional address or --procedure. Alternatively, use --file-offset alone. |
+| `--snapshot` | `string` |  | Load and update a local analysis snapshot |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea decompile-all
+
+Write every function's pseudocode into a directory and return a manifest
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App or program path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--output` | `string` |  | Output directory. A relative path is resolved from the working directory. The parent must exist. |
+| `--layout` | `string` | `address` | address names files by function address. dwarf reports that compilation-unit paths are unavailable. |
+| `--resume` | `boolean` | `false` | Continue a matching export. Never overwrites a function file. |
+| `--name` | `string` |  | Case-sensitive literal substring of the function name |
+| `--namespace` | `string` |  | Case-sensitive function-name prefix, including any separator |
+| `--addressStart` | `string` |  | Inclusive lower bound, 0xoffset or space:0xoffset |
+| `--addressEnd` | `string` |  | Inclusive upper bound, 0xoffset or space:0xoffset |
+| `--limit` | `number` |  | Maximum functions to attempt after skipping verified files and recorded external functions |
+| `--snapshot` | `string` |  | Load a local analysis snapshot. decompile-all does not update it. |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea decompile-jeb-item
+
+Decompile one JEB type or method to engine pseudo-code
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `item-address` | `string` | yes | Type or method address within the unit, as listed by the engine |
+| `item-kind` | `string` | yes | Kind of item to decompile |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--unit-path` | `string` |  | Target code unit; the engine's first code unit in the project when omitted |
+
+# rea demangle-swift
+
+Demangle Swift symbols without Hopper
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Artifact path used for evidence identity |
+| `symbols` | `array` | yes | Swift mangled symbols to demangle |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--nativeCommandTimeoutMs` | `number` |  | Wall-clock budget in milliseconds for each macOS native command in this call (otool, lipo, codesign, plutil, swift-demangle, and the other allowlisted Xcode tools). Omitted means 60000. Integer from 1 to 2147483647. Applies on the next call. Does not raise the fixed 67108864-byte output allowance or the 65536-byte failure-diagnostic excerpt. Named native_command_timeout_ms rather than command_timeout_ms because command_timeout_ms is the separate one-shot objdump and rizin deadline (default 120000). |
+
+# rea discover-webmcp-tools
+
+Passively discover page-declared WebMCP tools
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Loopback CDP HTTP endpoint or browser WebSocket URL |
+| `targetId` | `string` | yes | Target ID from list-browser-targets |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--allowedOrigins` | `array` |  | Optional exact-origin filter |
+| `--commandTimeoutMs` | `number` |  | CDP WebSocket handshake and per-command response deadline in milliseconds (default 20000). Omitted means 20000 and applies on the next call. deadlineExpired for a handshake or command is not the caller observation window, not the 10000 ms CDP discovery response deadline, and not the 5000 ms cleanup grace. It also bounds passive script-source collection and the inspection/source-join phase that share this deadline. Does not raise the fixed protocol, retained-event, or source byte budgets. CDP discovery and cleanup grace have no runtime override. |
+| `--observationMs` | `number` | `100` | Observation duration in milliseconds |
+
+# rea doctor
+
+Check whether REA is ready
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--target` | `string` |  | Optional app path to check |
+| `--client` | `array` |  | Agent registration whose readiness is required; repeatable |
+| `--provider` | `array` |  | Deep-analysis provider whose readiness is required |
+| `--skill` | `boolean` |  | Require the installed REA skill identity to be aligned |
+
+# rea environment-build
+
+Build an agent environment bundle from a recorded capture in one offline step: inspect a HAR (or read capture Evidence), project the environment manifest, derive the state, report which tools the environment answers from state, which replay and why each write is withheld, then write the bundle environment-export writes
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `capture` | `string` | yes | A .har file, or capture Evidence JSON from inspect-web-network-capture (HAR) or capture-browser-scenario |
+| `directory` | `string` | no | Bundle directory to create; must be absent or empty, nothing is overwritten; omit only with --dry-run |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--name` | `string` |  | Env folder and env id (kebab-case); default the manifest's name, or the capture file's name when the origin is a loopback or IP address |
+| `--templateRule` | `array` |  | Opt-in template rule; repeat to select several. Replaces the default after-uid-literal, opaque-token, sibling-variance and prefix-variance |
+| `--formatRulesOnly` | `boolean` | `false` | Apply only the four format rules, the views' own default |
+| `--packageTarball` | `string` |  | Packed rea-agents tarball (npm pack) copied into the env folder and installed by the Dockerfile instead of the registry package pinned to this version |
+| `--dryRun` | `boolean` | `false` | Run every stage and report, but write nothing |
+| `--captureTimeoutMs` | `number` |  | Capture wall-clock deadline in milliseconds (default 30000), from decoder start through process exit. Omitted means 30000 and applies on the next capture. deadlineExpired returns no partial capture. Does not raise the fixed 33554432-byte input budget, 100663296-byte reply budget, or 64-level nesting cap. Those have no runtime override. |
+
+# rea environment-compare
+
+Compare an environment with probe captures of the application it was captured from: each probe is one call sequence recorded against a freshly reset application, answered by the environment from a reset state, with agreement reported per step, tool and probe
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `manifest` | `string` | yes | Environment manifest Evidence JSON path (inspect-analysis-view environment-manifest output) |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--evidence` | `string` |  | Parent capture Evidence JSON path (inspect-web-network-capture or capture-browser-scenario output) the manifest cites |
+| `--probe` | `array` |  | Probe capture Evidence JSON path (inspect-web-network-capture or capture-browser-scenario output) of one call sequence made against a freshly reset application; repeat once per sequence |
+
+# rea environment-export
+
+Export an environment manifest and its capture Evidence as an agent environment bundle folder the agentenv framework runs with agent-env run
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `manifest` | `string` | yes | Environment manifest Evidence JSON path (inspect-analysis-view environment-manifest output) |
+| `directory` | `string` | yes | Bundle directory to create; must be absent or empty, nothing is overwritten |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--evidence` | `string` |  | Parent capture Evidence JSON path (inspect-web-network-capture or capture-browser-scenario output) the manifest cites |
+| `--packageTarball` | `string` |  | Packed rea-agents tarball (npm pack) copied into the env folder and installed by the Dockerfile instead of the registry package pinned to this version |
+| `--name` | `string` |  | Env folder and env id (kebab-case); default the manifest's name |
+
+# rea environment-serve
+
+Serve an environment manifest as an agent environment over streamable HTTP until SIGINT or SIGTERM: read tools, and write tools whose effect the capture confirmed, answer from the state the capture observed, derived at startup, or every tool replays retained capture records with --replay-only or when the state is unavailable
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `manifest` | `string` | yes | Environment manifest Evidence JSON path (inspect-analysis-view environment-manifest output) |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--evidence` | `string` |  | Parent capture Evidence JSON path (inspect-web-network-capture or capture-browser-scenario output) the manifest cites |
+| `--replayOnly` | `boolean` | `false` | Serve pure replay: derive no state, serve every manifest tool from its retained records and answer every /agentenv method as not found |
+| `--host` | `string` |  | Listener address; default MCP_HOST, else 127.0.0.1 |
+| `--port` | `number` |  | Listener port; default MCP_PORT, else 0 for an ephemeral port |
+
+# rea evaluate-reconstruction-coverage
+
+Evaluate inline fail-closed reconstruction coverage
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea evidence-export
+
+Validate and atomically export canonical Evidence JSON
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `source` | `string` | yes | Existing evidence bundle JSON path |
+| `output` | `string` | yes | Canonical output JSON path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--overwrite` | `boolean` | `false` | Replace output file |
+
+# rea evidence-import
+
+Validate and import a bounded local Evidence bundle
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Evidence bundle JSON path |
+
+# rea execute-rizin-command
+
+Execute one Rizin command against a local artifact
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Path to the local artifact to analyze. |
+| `command` | `string` | yes | One caller-selected Rizin command. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--commandTimeoutMs` | `number` |  | Wall-clock budget in milliseconds. Target preflight shares one budget across stat and digest, and the one-shot command receives that budget again (default 120000 each). Omitted means 120000. Applies on the next call. Does not raise the 16 MiB combined output cap, Ghidra or Hopper startup deadlines, or debugger session deadlines. |
+
+# rea export-web-scripts
+
+Export retained website scripts into an absent directory for static JavaScript analysis
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `capturePath` | `string` | yes | Absolute path to saved page or scenario capture JSON |
+| `outputDirectory` | `string` | yes | Absolute absent directory for verified scripts and manifest |
+
+# rea extract-artifact
+
+Extract regular contents of supported artifacts; DMG extraction is unavailable
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Application or package path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--integrityPolicy` | `string` | `fail` | Behavior when declared artifact integrity does not match |
+
+# rea extract-firmware
+
+Extract selected firmware bytes and return verified files and provenance
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local firmware path; never executed |
+| `outputDirectory` | `string` | yes | Absent output directory; parent must exist |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--offset` | `number` |  | Selected byte offset; requires length |
+| `--length` | `number` |  | Selected byte length; requires offset |
+| `--maxDepth` | `number` | `3` | Extraction depth; reaching it yields partial analysis |
+| `--maxOutputBytes` | `number` | `268435456` | Staging file-byte budget, checked during extraction; transient overshoot is possible |
+| `--maxOutputFiles` | `number` | `10000` | Staging entry budget, including directories and links |
+| `--publicationTimeoutMs` | `number` | `120000` | Publication and final cleanup budget in milliseconds, started after extraction and inventory; increase for a slow destination |
+| `--analysisTimeoutMs` | `number` |  | Analysis wall-clock budget in milliseconds (default 120000), from tool resolution through inspection and its final workspace cleanup, or extraction through inventory. Excludes queue admission and extraction publication. Does not raise fixed CPU, memory or byte limits. |
+
+# rea function
+
+Analyze one complete function with evidence. Supply at least one of the positional address or --procedure. Equal values are accepted; conflicts fail.
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App or program path |
+| `address` | `string` | no | Procedure name or address. Supply at least one of the positional address or --procedure. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--procedure` | `string` |  | Procedure name or address; use --procedure=<value> for leading dashes. Supply at least one of the positional address or --procedure. |
+| `--snapshot` | `string` |  | Load and update a local analysis snapshot |
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea identify-flutter-build
+
+Identify a Flutter build's Dart snapshot hash and engine facts by pure APK parsing
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local APK file to inspect |
+
+# rea import-managed-reconstruction
+
+Import decompiler-produced managed reconstruction against exact static member evidence
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline managed reconstruction JSON or JSON file path |
+
+# rea import-reference-source
+
+Import a source tree as historical reference only
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `root` | `string` | yes | Local source directory to import as historical reference |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `full` | Complete committed graph or compact historical-source summary |
+| `--outlineDepth` | `number` |  | Summary outline path depth (default: 2; 0 omits entries); requires --detail summary |
+
+# rea inspect
+
+Inspect an app overview with evidence
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App, program, or analysis database path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--snapshot` | `string` |  | Load and update a local analysis snapshot |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea inspect-adb-client
+
+Inspect the caller-selected adb client without contacting devices
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+# rea inspect-adb-device
+
+Inspect one device's build identity through a fixed getprop whitelist
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+# rea inspect-adb-display
+
+Report the display's declared size and density
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+# rea inspect-adb-package
+
+Inspect one installed package's version, installer, and flags through dumpsys
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `package` | `string` | yes | Package |
+
+# rea inspect-adb-window
+
+Report the window manager's current focus declarations
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+# rea inspect-analysis-view
+
+Project a selected view of completed Evidence JSON for a supported analysis operation
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--evidenceBundle` | `string` |  | Read the exact retained-evidence source ID from this local Evidence bundle without reopening the target; omit for inline Evidence |
+
+# rea inspect-android-class
+
+Inspect one exact APK class's member inventory
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local standalone APK path |
+| `className` | `string` | yes | Exact fully qualified class name |
+
+# rea inspect-android-method
+
+Decompile one APK method with explicit overload selection
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local standalone APK path |
+| `className` | `string` | yes | Exact fully qualified class name |
+| `methodName` | `string` | yes | Exact declared method name |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--overloadIndex` | `number` |  | Explicit zero-based index among same-name methods; required when ambiguous |
+
+# rea inspect-android-package
+
+Inspect APK declarations and decoded manifest without executing it
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local standalone APK path |
+
+# rea inspect-apk-signature
+
+Inspect declared APK signing schemes, signers and content digests
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Selected local APK/ZIP/AAB |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--view` | `string` |  | JSON signer/digest/lineage selection; requires --detail summary and --evidence_output |
+
+# rea inspect-apktool-client
+
+Inspect the caller-selected apktool launcher without decoding anything
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+# rea inspect-apple-ips
+
+Inspect an Apple .ips crash report without executing a target
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local Apple .ips crash report |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `1048576` | Maximum stable artifact bytes to read (default 1 MiB) |
+| `--maxThreads` | `number` | `256` | Maximum threads to examine; exceeding the budget fails without partial success |
+| `--maxFrames` | `number` | `8192` | Maximum frames across every thread; exceeding the budget fails without partial success |
+| `--maxImages` | `number` | `1024` | Maximum usedImages rows to examine; exceeding the budget fails without partial success |
+| `--maxRegisters` | `number` | `16384` | Maximum threadState register slots across every thread; exceeding the budget fails without partial success |
+| `--maxIntegerTextBytes` | `number` | `8388608` | Conservative UTF-16 byte allowance for all retained decimal/hex integer text, including derived addresses (default 8 MiB, maximum 64 MiB); checked before conversion and allocation |
+
+# rea inspect-artifact
+
+Inspect one artifact and return all available observations and next probes
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Application or package path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--integrityPolicy` | `string` | `fail` | Behavior when declared artifact integrity does not match |
+
+# rea inspect-asset-catalog
+
+Inspect compiled Apple asset catalog metadata
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Apple .app bundle path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--offset` | `number` | `0` | First metadata record |
+| `--limit` | `number` | `1000` | Maximum records to return |
+
+# rea inspect-binary-layout
+
+Inspect binary file/linked layout without executing the selected object
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local ELF binary or relocatable object |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--pwntoolsTimeoutMs` | `number` |  | Deadline in milliseconds for each owned pwntools command in this call. Omitted means 30000. Integer from 1 to 2147483647. Applies on the next call. Does not raise cpuSeconds 30 or the output (67108864 bytes), diagnostic (1048576 bytes), or address-space (3221225472 bytes) allowances. Artifact admission stays REA_PWNTOOLS_MAX_INPUT_BYTES (default 33554432 bytes). |
+
+# rea inspect-byte-entropy
+
+Inspect file-wide and block byte entropy without executing the file
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local file |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--blockSize` | `number` | `4096` | Power-of-two block size from 256 to 65536 bytes (default 4096) |
+| `--offset` | `number` | `0` | Window start as a decimal file byte offset (default 0) |
+| `--length` | `number` |  | Window length in bytes; omit to extend through EOF |
+
+# rea inspect-dart-aot
+
+Inspect one ABI's Dart AOT snapshot: sections, headers, and the string pool
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local APK file carrying a Flutter AOT payload |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--abi` | `string` |  | Exact lib/ directory label reported by identify_flutter_build; defaults to arm64-v8a, x86_64, x86, armeabi-v7a, then remaining ABIs alphabetically |
+
+# rea inspect-desktop-application
+
+Identify desktop runtime candidates from bounded directory and header observations
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local installation directory |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--max_entries` | `number` | `20000` | Maximum directory entries to examine; exhaustion leaves partial coverage |
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--max_probe_bytes` | `number` | `8388608` | Maximum total bytes read from selected file ranges |
+
+# rea inspect-devicetree
+
+Inspect a flattened devicetree blob without executing it
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local flattened devicetree image |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `4194304` | Maximum FDT file size in bytes (default 4194304) |
+| `--maxNodes` | `number` | `8192` | Maximum number of device-tree nodes (default 8192) |
+| `--maxProperties` | `number` | `32768` | Maximum number of device-tree properties (default 32768) |
+| `--maxDepth` | `number` | `64` | Maximum device-tree nesting depth (default 64) |
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+
+# rea inspect-electron-fuses
+
+Inspect packaged Electron fuse bytes without launching the application
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local Electron .app, Electron Framework binary, PE executable, or ELF executable |
+
+# rea inspect-electron-page
+
+Passively inspect one Electron file page
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Literal-loopback Electron CDP endpoint |
+| `targetId` | `string` | yes | Target ID from list-electron-targets |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--observationMs` | `number` | `100` | Observation duration in milliseconds |
+| `--includeScriptSources` | `boolean` | `false` | Include JavaScript source text |
+| `--commandTimeoutMs` | `number` |  | CDP WebSocket handshake and per-command response deadline in milliseconds (default 20000). Omitted means 20000 and applies on the next call. deadlineExpired for a handshake or command is not the caller observation window, not the 10000 ms CDP discovery response deadline, and not the 5000 ms cleanup grace. It also bounds passive script-source collection and the inspection/source-join phase that share this deadline. Does not raise the fixed protocol, retained-event, or source byte budgets. CDP discovery and cleanup grace have no runtime override. |
+
+# rea inspect-elf-notes
+
+Inspect ELF PT_NOTE and SHT_NOTE identities without executing the image
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local ELF32/ELF64 image |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `67108864` | Maximum stable artifact bytes to read (default 64 MiB) |
+| `--maxEntries` | `number` | `32` | Maximum note entries to examine across every table; exceeding the budget fails without partial success |
+
+# rea inspect-erlang-beam
+
+Inspect Erlang BEAM atoms, exports, imports and Code header without executing bytecode
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local BEAM file |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `67108864` | Maximum stable artifact bytes to read (default 64 MiB) |
+| `--maxChunks` | `number` | `64` | Maximum IFF chunks to examine; exceeding the budget fails without partial success |
+| `--maxAtoms` | `number` | `4096` | Maximum atom-table entries to decode; exceeding the budget fails without partial success |
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--view` | `string` |  | JSON beam view; requires --detail summary and --evidence_output |
+
+# rea inspect-evidence-bundle
+
+Inspect complete or selected discovery metadata from a local Evidence bundle
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | JSON or JSON file with absolute path, detail and optional record filters |
+
+# rea inspect-evm-interface
+
+Infer interface candidates from explicit local EVM bytecode
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local bytecode carrier |
+| `encoding` | `string` | yes | Selected carrier representation |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--timeoutMs` | `number` |  | Deadline in milliseconds for the owned EVMole worker command (default 30000), not carrier acquisition or final reply reads. An integer from 1 to 2147483647 applies on the next call. Fixed input, reply, diagnostic, address-space, and CPU allowances stay unchanged. |
+
+# rea inspect-firmware-regions
+
+Inspect firmware signature candidates without extracting them
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local firmware path; never executed |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--analysisTimeoutMs` | `number` |  | Analysis wall-clock budget in milliseconds (default 120000), from tool resolution through inspection and its final workspace cleanup, or extraction through inventory. Excludes queue admission and extraction publication. Does not raise fixed CPU, memory or byte limits. |
+
+# rea inspect-go-binary
+
+Inspect embedded Go compiler, modules and build settings without target execution
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local ELF, PE, thin Mach-O or universal Mach-O image |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--architecture` | `string` |  | CPU family of the slice to read from a universal Mach-O; required for universal files |
+
+# rea inspect-gpu-code-objects
+
+Inspect embedded CUDA/HIP targets and selected static kernel metadata
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local ELF/PE, CUDA fatbin, CUBIN, PTX or HIP bundle |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--view` | `string` |  | JSON GPU object/kernel/PTX page selection; requires --detail summary and --evidence_output |
+| `--analysis` | `string` | `inventory` | Inventory GPU targets or decode selected kernel metadata |
+| `--expected_sha256` | `string` |  | Inventory SHA-256; required with --object_ids |
+| `--object_ids` | `string` |  | JSON array of exact object IDs to decode |
+| `--targets` | `string` |  | JSON array of exact target declarations to decode |
+
+# rea inspect-il2cpp-metadata
+
+Inventory IL2CPP global-metadata.dat names, owners and string literals, optionally linking method addresses from the native binary
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local global-metadata.dat (version 24, 27, 29, 31 or 39) |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--binary` | `string` |  | Matching native binary (Mach-O GameAssembly.dylib, PE GameAssembly.dll or ELF libil2cpp.so) to link method addresses; read only |
+| `--architecture` | `string` |  | Slice of a universal Mach-O binary |
+| `--genericInstances` | `boolean` |  | Also link generic method instances (Type<Args>$$Method<Args>) and include them in --ghidra-seeds; needs --binary |
+| `--ghidraSeeds` | `string` |  | Also write REA_GHIDRA_SEED_FILE function seeds named Type$$Method for every linked method; needs --binary |
+| `--seedBase` | `string` |  | Address Ghidra loads the binary at; seeds are seed-base + RVA (default: Ghidra's loader default, 0x100000 for an ELF linked at 0, else the link base) |
+
+# rea inspect-jeb-client
+
+Inspect the running JEB MCP client without opening a target
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+# rea inspect-kernel-module
+
+Inspect Linux kernel module metadata without executing the module
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local ELF32/ELF64 kernel module or compressed .ko container |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `67108864` | Maximum stable artifact bytes to read (default 64 MiB) |
+| `--maxEntries` | `number` | `8192` | Maximum .modinfo and __versions entries plus file-backed __ksymtab* sections to examine; exceeding the budget fails without partial success |
+
+# rea inspect-keyed-archive
+
+Inspect a Foundation keyed archive as an object-reference graph
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Foundation plist archive or Apple app bundle |
+| `archive` | `string` | no | Relative archive path when the target is a bundle |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--root` | `string` |  | Named $top archive root |
+| `--offset` | `number` | `0` | First original object-table index |
+| `--limit` | `number` | `20000` | Maximum object-table entries to return |
+
+# rea inspect-macho
+
+Run inspect_macho without launching Hopper
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Mach-O or app path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--nativeCommandTimeoutMs` | `number` |  | Wall-clock budget in milliseconds for each macOS native command in this call (otool, lipo, codesign, plutil, swift-demangle, and the other allowlisted Xcode tools). Omitted means 60000. Integer from 1 to 2147483647. Applies on the next call. Does not raise the fixed 67108864-byte output allowance or the 65536-byte failure-diagnostic excerpt. Named native_command_timeout_ms rather than command_timeout_ms because command_timeout_ms is the separate one-shot objdump and rizin deadline (default 120000). |
+
+# rea inspect-managed-artifact
+
+Inspect PE/CLI identity without loading target code
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Managed PE executable or assembly path |
+
+# rea inspect-managed-members
+
+Inspect PE/CLI metadata members, signatures, CIL anchors, and ldstr string literals without loading target code
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Managed PE executable or assembly path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--type` | `array` |  | Inspect only members declared by this exact type full name, and the string literals they load, such as System.Threading.Monitor; a nested type is named by its bare name, which selects every nested type of that name (repeatable) |
+| `--detail` | `string` | `complete` | complete returns full Evidence (default); summary returns identity, selection, coverage, limitations and collection counts and requires --evidence-bundle |
+| `--evidenceBundle` | `string` |  | Write complete parent Evidence to a new local bundle for later inspect-analysis-view calls; never replaces an existing path |
+
+# rea inspect-managed-native-boundaries
+
+Inspect PE/CLI PInvoke and native implementation boundary declarations without loading target code
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Managed PE executable or assembly path |
+
+# rea inspect-model-artifact
+
+Inspect GGUF or safetensors headers without loading model weights
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local model file, detected by content |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--view` | `string` |  | JSON model page selection; requires --detail summary and --evidence_output |
+| `--hash` | `string` | `header` | header reads declarations only; full additionally streams all bytes for SHA-256 |
+
+# rea inspect-native-api
+
+Reconstruct one native function API boundary with evidence. Supply at least one of the positional address or --procedure. Equal values are accepted; conflicts fail.
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App or program path |
+| `address` | `string` | no | Procedure name or address. Supply at least one of the positional address or --procedure. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--procedure` | `string` |  | Procedure selector; use this option for symbols beginning with a dash. Supply at least one of the positional address or --procedure. |
+| `--snapshot` | `string` |  | Load and update a local analysis snapshot |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea inspect-native-data-type
+
+Inspect one recovered database type or typed data object
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local native executable or app path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--type` | `string` |  | Exact database type category path |
+| `--address` | `string` |  | Exact native address |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea inspect-native-dispatch-metadata
+
+Inspect typed Objective-C and Swift dispatch metadata
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Target path used to bind the result evidence |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxRecords` | `number` | `5000` | Maximum symbol records to inspect |
+| `--maxInputBytes` | `number` |  | Largest target file REA reads into memory for binary metadata, in bytes. Omitted: 67108864 (64 MiB). The whole file counts, including every slice of a universal Mach-O. At most 1073741824 (1 GiB). |
+| `--snapshot` | `string` |  | Load or update the local analysis snapshot |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea inspect-native-exports
+
+Inspect a PE or ELF image's export table without executing it
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local PE or ELF image |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `268435456` | Maximum stable artifact bytes to read (default 256 MiB) |
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+
+# rea inspect-native-instruction
+
+Inspect one native instruction with decoded operand facts
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local native executable or app path |
+| `address` | `string` | yes | Exact native address |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea inspect-native-load-image
+
+Verify loaded native bytes, source mappings, relocations and entry
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local executable path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea inspect-packet-capture
+
+Inspect an existing packet capture with caller-supplied TShark
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local packet capture |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--fields` | `array` |  | TShark field names to return, e.g. ip.addr, usb.endpoint_address, btatt.opcode; frame.number is always included |
+| `--display_filter` | `unknown` | `null` | Optional Wireshark display filter (-Y), applied within the read limit |
+| `--decode_as` | `array` |  | Explicit TShark decode-as selections, e.g. tcp.port==8888,http |
+| `--packet_limit` | `unknown` | `null` | Maximum input packets to read before filtering; omitted scans to EOF within resource limits |
+| `--two_pass` | `boolean` | `true` | Use two-pass analysis for fields requiring later packets; false requests a single pass |
+| `--match_offset` | `number` | `0` | Skip this many matching packets after filtering; default 0 |
+| `--match_limit` | `number` |  | Returned matching frames per page; default 50 |
+| `--all_matches` | `boolean` | `false` | Return all remaining matching frames instead of a bounded page |
+
+# rea inspect-packet-fields
+
+Search installed TShark protocol and field definitions
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--kind` | `string` | `protocols` | Return protocol registrations or field definitions; defaults to protocols |
+| `--protocol` | `unknown` | `null` | Exact protocol abbreviation; selects that protocol or its registered fields |
+| `--query` | `string` |  | Case-insensitive literal substring in name, abbreviation or field description |
+| `--offset` | `number` | `0` | Number of matching records to skip; defaults to 0 |
+| `--limit` | `number` |  | Maximum matching records to return; defaults to 50 |
+| `--all` | `boolean` | `false` | Return all remaining matches within resource limits |
+
+# rea inspect-pcap-capture
+
+Inspect one pcap/pcapng capture: endpoints, DNS, TLS SNI, and protocol distribution
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local pcap or pcapng capture file to inspect |
+
+# rea inspect-pcap-client
+
+Inspect the caller-selected tshark and capinfos binaries without reading a capture
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+# rea inspect-pe-certificates
+
+Inspect PE Authenticode certificate table identities without verifying signatures
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local PE32/PE32+ image |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `67108864` | Maximum stable artifact bytes to read (default 64 MiB) |
+| `--maxEntries` | `number` | `8` | Maximum WIN_CERTIFICATE entries to examine; exceeding the budget fails without partial success |
+
+# rea inspect-pe-imports
+
+Inspect PE import and delay-load table identities without executing the image
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local PE32/PE32+ image |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `67108864` | Maximum stable artifact bytes to read (default 64 MiB) |
+| `--maxDlls` | `number` | `256` | Maximum import and delay-load descriptors to examine; exceeding the budget fails without partial success |
+| `--maxFunctions` | `number` | `8192` | Maximum imported functions to examine across every table; exceeding the budget fails without partial success |
+
+# rea inspect-pe-load-config
+
+Inspect PE TLS callbacks and load configuration without executing the image
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local PE32/PE32+ image |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `67108864` | Maximum stable artifact bytes to read (default 64 MiB) |
+| `--maxCallbacks` | `number` | `64` | Maximum non-null TLS callbacks to examine; exceeding the budget fails without partial success |
+
+# rea inspect-pe-resources
+
+Inspect PE resource identities, payload ranges, hashes and icon-group relationships
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local PE32/PE32+ image |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `67108864` | Maximum stable artifact bytes to read (default 64 MiB) |
+| `--maxEntries` | `number` | `16384` | Maximum resource directory entries to examine; exceeding the budget fails without partial success |
+
+# rea inspect-plist
+
+Parse app plist metadata without launching Hopper
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App or Mach-O path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--relativePath` | `string` |  | Plist path relative to the app root, or an absolute path (default: the bundle's Info.plist) |
+| `--nativeCommandTimeoutMs` | `number` |  | Wall-clock budget in milliseconds for each macOS native command in this call (otool, lipo, codesign, plutil, swift-demangle, and the other allowlisted Xcode tools). Omitted means 60000. Integer from 1 to 2147483647. Applies on the next call. Does not raise the fixed 67108864-byte output allowance or the 65536-byte failure-diagnostic excerpt. Named native_command_timeout_ms rather than command_timeout_ms because command_timeout_ms is the separate one-shot objdump and rizin deadline (default 120000). |
+
+# rea inspect-python-pyc
+
+Inspect a supported CPython 3.7–3.13 pyc header and marshal code objects without executing bytecode
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local CPython .pyc file |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxFileBytes` | `number` | `16777216` | Maximum selected file size in bytes; exceeding the budget fails without partial success |
+| `--maxObjects` | `number` | `16384` | Maximum marshal objects to examine; exceeding the budget fails without partial success |
+| `--maxDepth` | `number` | `64` | Maximum marshal nesting depth; exceeding the budget fails without partial success |
+| `--maxStringBytes` | `number` | `1048576` | Maximum bytes retained for one marshal string or byte string; exceeding the budget fails without partial success |
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--view` | `string` |  | JSON python-pyc view; requires --detail summary and --evidence_output |
+
+# rea inspect-recorded-crash
+
+Inspect supplied core registers/signals and optional debugger mapping evidence
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local Linux ELF64 amd64 or AArch64 little-endian core |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--debuggerContext` | `boolean` | `false` | Add BYO core-only GDB/pwndbg mapping candidates |
+| `--pwntoolsTimeoutMs` | `number` |  | Deadline in milliseconds for each owned pwntools command in this call. Omitted means 30000. Integer from 1 to 2147483647. Applies on the next call. Does not raise cpuSeconds 30 or the output (67108864 bytes), diagnostic (1048576 bytes), or address-space (3221225472 bytes) allowances. Artifact admission stays REA_PWNTOOLS_MAX_INPUT_BYTES (default 33554432 bytes). |
+
+# rea inspect-rust-binary
+
+Inspect an embedded cargo-auditable Rust dependency list without target execution
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local ELF, PE, thin Mach-O or universal Mach-O image |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` |  | Default complete; a view selects compact delivery with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--architecture` | `string` |  | CPU family of the slice to read from a universal Mach-O; required for universal files |
+| `--view` | `string` |  | JSON package or edge selection; retains complete Evidence with --evidence_output |
+
+# rea inspect-signal-decoders
+
+Search installed sigrok decoders or selected decoder help
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--decoder` | `unknown` | `null` | Exact installed decoder ID for help; null searches the decoder catalog |
+| `--query` | `string` |  | Case-insensitive literal substring in decoder ID/name or help lines; empty selects all |
+| `--offset` | `number` | `0` | Number of matching decoders or help lines to skip; defaults to 0 |
+| `--limit` | `number` |  | Maximum matching decoders or help lines to return; defaults to 50 |
+| `--all` | `boolean` | `false` | Return all remaining matches |
+
+# rea inspect-signature
+
+Run inspect_signature without launching Hopper
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Mach-O or app path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--nativeCommandTimeoutMs` | `number` |  | Wall-clock budget in milliseconds for each macOS native command in this call (otool, lipo, codesign, plutil, swift-demangle, and the other allowlisted Xcode tools). Omitted means 60000. Integer from 1 to 2147483647. Applies on the next call. Does not raise the fixed 67108864-byte output allowance or the 65536-byte failure-diagnostic excerpt. Named native_command_timeout_ms rather than command_timeout_ms because command_timeout_ms is the separate one-shot objdump and rizin deadline (default 120000). |
+
+# rea inspect-sqlite-database
+
+Inspect SQLite schema and optional ordinary-table rows from a local snapshot
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local SQLite database snapshot |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--workerTimeoutMs` | `number` |  | Deadline in milliseconds for worker startup, queries and reply writing (default 30000), not snapshot acquisition or the whole call. Allow client headroom for acquisition, reply reads, cleanup and delivery. Fixed byte/heap limits do not change. |
+| `--table` | `string` |  | Exact ordinary table name to read |
+| `--column` | `array` |  | Repeat to select exact row columns in the requested order; requires table |
+| `--schemaScope` | `string` |  | Compact inventory by default, or selected-table details when table is supplied; database requests full schema |
+| `--rowLimit` | `number` |  | Positive safe integer row count; default 20; requires table |
+
+# rea inspect-wasm-artifact
+
+Inspect an explicit local WASM artifact with WABT
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local WASM artifact |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--commandTimeoutMs` | `number` |  | Deadline in milliseconds for each WABT version/analysis command (default 30000), not the whole inspection. Allow additional client time for all commands, file checks and cleanup. Input/output safety limits remain fixed. |
+| `--glue_paths` | `array` |  | Selected local JavaScript glue paths |
+| `--candidate_paths` | `array` |  | Explicit local WASM candidates |
+
+# rea inspect-web-event-listeners
+
+Inspect native listener source locations on the first main-document CSS match
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Existing loopback browser CDP endpoint |
+| `targetId` | `string` | yes | Selected page target ID from list-browser-targets |
+| `selector` | `string` | yes | Native CSS selector; inspect the first main-document match |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--allowedOrigins` | `array` |  | Optional exact-origin filter |
+| `--commandTimeoutMs` | `number` |  | CDP WebSocket handshake and per-command response deadline in milliseconds (default 20000). Omitted means 20000 and applies on the next call. deadlineExpired for a handshake or command is not the caller observation window, not the 10000 ms CDP discovery response deadline, and not the 5000 ms cleanup grace. It also bounds passive script-source collection and the inspection/source-join phase that share this deadline. Does not raise the fixed protocol, retained-event, or source byte budgets. CDP discovery and cleanup grace have no runtime override. |
+
+# rea inspect-web-network-capture
+
+Inspect retained HAR, native mitmproxy, Fiddler SAZ or aioquic qlog records without fetching recorded URLs
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `capturePath` | `string` | yes | Local capture path |
+| `format` | `string` | yes | Producer capture format |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--protobufFraming` | `string` |  | Override framing for selected retained binary bodies |
+| `--protobufBodyPointer` | `array` |  | Exact body pointers; repeat to select several |
+| `--protobufSchema` | `string` |  | Local compiled FileDescriptorSet path |
+| `--protobufMessage` | `string` |  | Fully qualified message type in the descriptor set |
+| `--record` | `array` |  | Zero-based producer ordinals; repeat to select several |
+| `--sensitiveValue` | `array` |  | Literal string values explicitly marked sensitive; repeat as needed |
+| `--captureTimeoutMs` | `number` |  | Capture wall-clock deadline in milliseconds (default 30000), from decoder start through process exit. Omitted means 30000 and applies on the next capture. deadlineExpired returns no partial capture. Does not raise the fixed 33554432-byte input budget, 100663296-byte reply budget, or 64-level nesting cap. Those have no runtime override. |
+
+# rea inspect-web-page
+
+Passively inspect one page through CDP, defaulting to its current origin
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Loopback CDP HTTP endpoint or browser WebSocket URL |
+| `targetId` | `string` | yes | Target ID from list-browser-targets |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--allowedOrigins` | `array` |  | Optional exact-origin filter |
+| `--commandTimeoutMs` | `number` |  | CDP WebSocket handshake and per-command response deadline in milliseconds (default 20000). Omitted means 20000 and applies on the next call. deadlineExpired for a handshake or command is not the caller observation window, not the 10000 ms CDP discovery response deadline, and not the 5000 ms cleanup grace. It also bounds passive script-source collection and the inspection/source-join phase that share this deadline. Does not raise the fixed protocol, retained-event, or source byte budgets. CDP discovery and cleanup grace have no runtime override. |
+| `--observationMs` | `number` | `500` | Observation duration in milliseconds |
+| `--includeAccessibilityText` | `boolean` | `false` | Include accessibility text |
+| `--includeConsoleText` | `boolean` | `false` | Include console message text |
+| `--includeJsonBodyShapes` | `boolean` | `false` | Include structural shapes of JSON response bodies |
+| `--includeWebsocketShapes` | `boolean` | `false` | Include structural shapes of WebSocket payloads |
+| `--includeScriptSources` | `boolean` | `false` | Include JavaScript source text |
+| `--includeStorageKeys` | `boolean` | `false` | Include storage key names without values |
+| `--includeStorageFingerprints` | `boolean` | `false` | Include content-derived storage fingerprints |
+
+# rea inspect-with-objdump
+
+Inspect a local artifact with GNU objdump and retain its raw output as Evidence
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Path to the local artifact to inspect. |
+| `operation` | `string` | yes | GNU objdump inspection operation to run. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--symbol` | `string` |  | Native symbol to select with the disassemble operation; GNU objdump controls matching and boundaries. |
+| `--followDebugLinks` | `boolean` | `false` | Follow local DWARF debug links. External debug-file identity is not bound to Evidence. |
+| `--commandTimeoutMs` | `number` |  | Wall-clock budget in milliseconds. Target preflight shares one budget across stat and digest, and the one-shot command receives that budget again (default 120000 each). Omitted means 120000. Applies on the next call. Does not raise the 16 MiB combined output cap, Ghidra or Hopper startup deadlines, or debugger session deadlines. |
+
+# rea install-adb-package
+
+Install one local APK; --replace requests reinstall mode to keep existing app data
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `apk-path` | `string` | yes | Local APK file to install |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--replace` | `boolean` | `false` | Request reinstall mode and keep existing app data if present |
+
+# rea instructions
+
+Read every raw instruction without decompiling. Supply at least one of the positional address or --procedure. Equal values are accepted; conflicts fail.
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App or program path |
+| `address` | `string` | no | Procedure name or address. Supply at least one of the positional address or --procedure. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--procedure` | `string` |  | Procedure name or address; use --procedure=<value> for leading dashes. Supply at least one of the positional address or --procedure. |
+| `--snapshot` | `string` |  | Load and update a local analysis snapshot |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea instrument-with-frida
+
+Run one Frida script against a selected process and detach. Provide exactly one of --script or --script-file.
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `mode` | `string` | yes | Attach to a PID or spawn a program |
+| `target` | `string` | yes | Process ID for attach or program path for spawn |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--remoteAddress` | `string` |  | Remote Frida host address, optionally with a port |
+| `--token` | `string` |  | Remote authentication token |
+| `--certificate` | `string` |  | Remote TLS certificate |
+| `--origin` | `string` |  | Remote connection origin |
+| `--keepaliveInterval` | `number` |  | Remote keepalive interval in seconds |
+| `--deviceId` | `string` |  | Frida device identifier |
+| `--script` | `string` |  | Inline JavaScript to load. Provide exactly one of --script or --script-file. |
+| `--scriptFile` | `string` |  | Path to JavaScript source file. Provide exactly one of --script or --script-file. |
+| `--argument` | `array` |  | Arguments passed to a spawned target |
+| `--durationMs` | `number` | `1000` | Instrumentation duration in milliseconds |
+
+# rea list-adb-devices
+
+List attached devices with serial, state, transport, and inferred kind
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+# rea list-adb-directory
+
+List one device directory with kinds, permissions, and sizes
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `device-path` | `string` | yes | Absolute device directory path to list |
+
+# rea list-adb-features
+
+List the device's declared hardware and software features
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+# rea list-adb-packages
+
+List installed packages on one device with base APK device paths
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--scope` | `string` | `all` | Restrict to third-party or system packages |
+
+# rea list-adb-processes
+
+List running processes exactly as ps -A reports them
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+# rea list-adb-services
+
+List the device's binder services and interfaces
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+# rea list-architectures
+
+Run list_architectures without launching Hopper
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Mach-O or app path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--nativeCommandTimeoutMs` | `number` |  | Wall-clock budget in milliseconds for each macOS native command in this call (otool, lipo, codesign, plutil, swift-demangle, and the other allowlisted Xcode tools). Omitted means 60000. Integer from 1 to 2147483647. Applies on the next call. Does not raise the fixed 67108864-byte output allowance or the 65536-byte failure-diagnostic excerpt. Named native_command_timeout_ms rather than command_timeout_ms because command_timeout_ms is the separate one-shot objdump and rizin deadline (default 120000). |
+
+# rea list-browser-targets
+
+List page targets from a selected loopback CDP browser, optionally filtered by origin
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Loopback CDP HTTP endpoint or browser WebSocket URL |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--allowedOrigins` | `array` |  | Optional exact-origin filter |
+
+# rea list-cutter-sessions
+
+List live Cutter instances connected through the REA Python plugin bridge
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+# rea list-electron-targets
+
+List local file pages exposed by the selected Electron CDP endpoint
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Literal-loopback Electron CDP endpoint |
+
+# rea list-frida-devices
+
+List local Frida devices and an optional remote endpoint
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--remoteAddress` | `string` |  | Remote Frida host address, optionally with a port |
+| `--token` | `string` |  | Remote authentication token |
+| `--certificate` | `string` |  | Remote TLS certificate |
+| `--origin` | `string` |  | Remote connection origin |
+| `--keepaliveInterval` | `number` |  | Remote keepalive interval in seconds |
+
+# rea list-frida-processes
+
+List processes visible through a Frida device
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--remoteAddress` | `string` |  | Remote Frida host address, optionally with a port |
+| `--token` | `string` |  | Remote authentication token |
+| `--certificate` | `string` |  | Remote TLS certificate |
+| `--origin` | `string` |  | Remote connection origin |
+| `--keepaliveInterval` | `number` |  | Remote keepalive interval in seconds |
+| `--deviceId` | `string` |  | Frida device identifier |
+
+# rea list-javascript-runtime-targets
+
+List Node/Electron V8 Inspector targets
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Literal-loopback Inspector endpoint |
+
+# rea list-jeb-units
+
+List JEB project units by path and type with optional filter
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--filter` | `string` |  | Wildcard filter matched against unit paths; '*' allowed |
+| `--parent-unit-path` | `string` |  | Restrict results to descendants of this unit path |
+| `--index` | `number` | `0` | Zero-based index of the first result to return |
+| `--count` | `number` | `100` | Maximum results to return; the engine protocol caps pages at 100 |
+
+# rea list-objdump-architectures
+
+List BFD targets advertised by the installed GNU objdump
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--detail` | `string` | `complete` | Deliver complete Evidence, or a summary with --evidence_output |
+| `--evidence_output` | `string` |  | Save complete Evidence as a bundle; required for summary delivery. Never overwrites. |
+| `--commandTimeoutMs` | `number` |  | Wall-clock budget in milliseconds. Target preflight shares one budget across stat and digest, and the one-shot command receives that budget again (default 120000 each). Omitted means 120000. Applies on the next call. Does not raise the 16 MiB combined output cap, Ghidra or Hopper startup deadlines, or debugger session deadlines. |
+
+# rea match-native-functions
+
+Match two observed native function inventories without executing targets
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `input` | `string` | yes | JSON or JSON file: left/right inventories, optional observations and detail |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--source_bundle` | `array` |  | Canonical source Evidence bundle for retained references; repeat for each input |
+| `--evidence_output` | `string` |  | Save full matching Evidence and selected sources; required for default summary; never overwrites |
+
+# rea observe-javascript-runtime
+
+Passively observe one exact Node/Electron Inspector target
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Literal-loopback Inspector endpoint |
+| `targetId` | `string` | yes | Target from list-javascript-runtime-targets |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--runtimeKind` | `string` |  | Declared target role; Inspector cannot authenticate the Electron role |
+| `--observationMs` | `number` | `100` | Observation window in milliseconds |
+
+# rea observe-native-calls
+
+Launch a Mach-O under LLDB and record entries into selected functions or Objective-C methods
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Mach-O or app path |
+| `inputJson` | `string` | yes | Inline JSON or a JSON file path: breakpoints, arguments, environment, duration_ms, max_events, argument_registers, backtrace_frames |
+
+# rea observe-native-ui
+
+Observe one already-running native application window by PID and window ID
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local native executable or app path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--pid` | `number` |  | Existing application PID |
+| `--windowId` | `number` |  | Exact selected application window ID |
+| `--screenshot` | `boolean` | `true` | Capture only the selected window |
+| `--accessibility` | `boolean` | `true` | Read the selected window accessibility tree |
+| `--maxNodes` | `number` | `500` | Maximum accessibility nodes per capture |
+| `--nativeUiDeadlineMs` | `number` |  | Deadline in milliseconds for this UI observation or scenario, including helper preparation and captures. Omitted means 180000. Integer from 1 to 2147483647. Applies on the next call. Does not raise the fixed 67108864-byte scenario output allowance or the 180000 ms cap on one wait step. A partial observation may already be retained when this deadline expires. |
+
+# rea observe-web-execution
+
+Observe precise page execution; resets counters and temporarily disables optimization
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Existing loopback browser CDP endpoint |
+| `targetId` | `string` | yes | Selected page target ID from list-browser-targets |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--allowedOrigins` | `array` |  | Optional exact-origin filter |
+| `--commandTimeoutMs` | `number` |  | CDP WebSocket handshake and per-command response deadline in milliseconds (default 20000). Omitted means 20000 and applies on the next call. deadlineExpired for a handshake or command is not the caller observation window, not the 10000 ms CDP discovery response deadline, and not the 5000 ms cleanup grace. It also bounds passive script-source collection and the inspection/source-join phase that share this deadline. Does not raise the fixed protocol, retained-event, or source byte budgets. CDP discovery and cleanup grace have no runtime override. |
+| `--observationMs` | `number` | `10000` | Observation duration in milliseconds |
+
+# rea observe-web-session
+
+Observe user-driven page navigation during a chosen window
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `endpoint` | `string` | yes | Loopback CDP HTTP endpoint or browser WebSocket URL |
+| `targetId` | `string` | yes | Target ID from list-browser-targets |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--allowedOrigins` | `array` |  | Optional exact-origin filter |
+| `--commandTimeoutMs` | `number` |  | CDP WebSocket handshake and per-command response deadline in milliseconds (default 20000). Omitted means 20000 and applies on the next call. deadlineExpired for a handshake or command is not the caller observation window, not the 10000 ms CDP discovery response deadline, and not the 5000 ms cleanup grace. It also bounds passive script-source collection and the inspection/source-join phase that share this deadline. Does not raise the fixed protocol, retained-event, or source byte budgets. CDP discovery and cleanup grace have no runtime override. |
+| `--observationMs` | `number` | `10000` | Observation duration in milliseconds |
+
+# rea open-jeb-project
+
+Open or create a JEB project from an artifact or .jdb2 database
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Artifact file or existing .jdb2 project database, resolved by the running JEB client |
+
+# rea project-android-application-graph
+
+Project authenticated APK inventory Evidence into an Android application graph
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea project-apple-application-graph
+
+Project authenticated IPA or macOS app inventory Evidence into an Apple application graph
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea project-harmony-application-graph
+
+Project authenticated HarmonyOS HAP, HSP, or App Pack inventory Evidence into an application graph
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea project-managed-application-graph
+
+Project authenticated managed static Evidence into an application graph
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline managed application graph JSON or JSON file path |
+
+# rea providers
+
+List configured analysis providers
+
+# rea pull-adb-file
+
+Pull one device file to a local copy with a SHA-256 digest
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `device-path` | `string` | yes | Absolute device path to pull |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--output-directory` | `string` |  | Local directory for the pulled file |
+
+# rea pull-adb-package
+
+Pull one installed package's complete APK set with SHA-256 digests
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `package` | `string` | yes | Installed package name |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--output-directory` | `string` |  | Local directory for the pulled APK set; a package-named subdirectory is created inside |
+
+# rea push-adb-file
+
+Push one local file to the device; refuses existing targets without --overwrite
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `local-path` | `string` | yes | Existing local file |
+| `device-path` | `string` | yes | Absolute device destination |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--overwrite` | `boolean` | `false` | Allow replacing an existing device file |
+
+# rea read-adb-logcat
+
+Read a bounded dump of the device log for one buffer
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--count` | `number` | `500` | Number of most recent lines to read |
+| `--buffer` | `string` | `main` | Log buffer to read |
+| `--pid` | `number` |  | Restrict to one process id |
+
+# rea read-adb-setting
+
+Read one settings value from system, secure, or global
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `namespace` | `string` | yes | Settings namespace to read |
+| `key` | `string` | yes | Setting key to read |
+
+# rea read-bytes
+
+Read exact provider memory bytes at one analysis address
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local executable path |
+| `address` | `string` | yes | Exact provider memory address |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--length` | `number` | `256` | Requested byte count |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea reconcile-javascript-runtime
+
+Reconcile static application and passive runtime Evidence JSON
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline JSON or a JSON file path matching reconcile_javascript_runtime |
+
+# rea recover-javascript-sources
+
+Recover readable JavaScript modules with source provenance and verified files
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Absolute path to a UTF-8 JavaScript file; never executed |
+| `outputDirectory` | `string` | yes | Absolute absent output directory; parent must exist |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--additionalPath` | `array` |  | Additional absolute UTF-8 JavaScript files recovered together with path; each is snapshotted separately so imports can resolve across related chunks. All inputs share a 64 MiB total budget |
+| `--extractionMode` | `string` |  | Structural module boundaries, heuristic fallback, or finer inspection-only regions |
+| `--rewriteLevel` | `string` |  | Upstream syntax recovery level; runtime equivalence remains unverified |
+
+# rea resolve-adb-packages
+
+Find installed packages by case-insensitive name substring
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `query` | `string` | yes | Package-name substring to find |
+
+# rea resolve-native-call-targets
+
+Resolve one static native call site
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local native executable or app path |
+| `address` | `string` | yes | Exact native address |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea search
+
+Search every analyzed string or procedure name. Supply at least one of the positional pattern or --pattern. Equal values are accepted; conflicts fail.
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App or program path |
+| `pattern` | `string` | no | Literal text or regex pattern. Supply at least one of the positional pattern or --pattern. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--pattern` | `string` |  | Complete literal text or regex pattern; use --pattern=<value> for leading dashes. Supply at least one of the positional pattern or --pattern. |
+| `--kind` | `string` | `strings` | Analyzed item kind to search |
+| `--mode` | `string` | `literal` | Interpret the pattern as literal text or a regex |
+| `--caseSensitive` | `boolean` | `false` | Match the pattern with exact letter case |
+| `--snapshot` | `string` |  | Load and update a local analysis snapshot |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea search-android-classes
+
+Search APK class names; empty query inventories all classes
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local standalone APK path |
+| `query` | `string` | yes | Case-sensitive class-name substring; empty lists all classes |
+
+# rea search-bytes
+
+Find masked byte patterns in initialized provider memory
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local executable path |
+| `pattern` | `string` | yes | Hexadecimal byte pairs with ?? wildcards |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--mask` | `string` |  | Equal-length hexadecimal bit mask |
+| `--start` | `string` |  | Inclusive start address |
+| `--end` | `string` |  | Inclusive end address |
+| `--cursor` | `string` |  | Continuation from the same query's next_cursor |
+| `--limit` | `number` | `100` | Maximum matches on this page |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea setup
+
+Configure agent integrations and optional analysis providers
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--yes` | `boolean` | `false` | Approve user-owned setup actions without prompting |
+| `--installHopper` | `boolean` | `false` | Also approve Hopper installation with --yes |
+| `--client` | `array` |  | Agent integration to configure; repeat for multiple agents |
+| `--skillClient` | `array` |  | Existing client skill destination to update; repeatable |
+| `--allDetected` | `boolean` | `false` | Configure every detected supported agent |
+| `--skill` | `boolean` |  | Override the bundled skill included with agent integrations |
+| `--dryRun` | `boolean` | `false` | Print the resolved plan without applying it |
+| `--accessible` | `boolean` | `false` | Use sequential accessible setup prompts |
+
+# rea start-adb-activity
+
+Start an intent with am start (action, URI, component, extras)
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `action` | `string` | yes | Intent action to start |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--data-uri` | `string` |  | Intent data URI (-d) |
+| `--component` | `string` |  | Explicit component in package/activity form (-n) |
+| `--extra` | `array` |  | Typed extra as type:key:value (string, boolean, int, long, float), repeatable |
+
+# rea start-adb-app
+
+Start one installed app by resolving and launching its launcher activity
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `package` | `string` | yes | Installed package to start |
+
+# rea stop-adb-app
+
+Force-stop every process of one package
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `package` | `string` | yes | Package to force-stop |
+
+# rea trace
+
+Trace a literal feature through analyzed references. Supply at least one of the positional query or --query. Equal values are accepted; conflicts fail.
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App or program path |
+| `query` | `string` | no | Literal feature query. Supply at least one of the positional query or --query. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--query` | `string` |  | Complete literal feature query; use --query=<value> for leading dashes. Supply at least one of the positional query or --query. |
+| `--caseSensitive` | `boolean` | `false` | Match the query with exact letter case |
+| `--snapshot` | `string` |  | Load and update a local analysis snapshot |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea trace-android-references
+
+Trace incoming APK using nodes for a class or selected method
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local standalone APK path |
+| `className` | `string` | yes | Exact fully qualified class name |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--methodName` | `string` |  | Declared method name; omit for class references |
+| `--overloadIndex` | `number` |  | Index among same-name methods from inspect-android-class |
+
+# rea trace-application-feature
+
+Trace a typed seed through authenticated application Evidence JSON
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea trace-dylib-resolution
+
+Trace dyld load-path resolution for a Mach-O or every executable in an app bundle
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Mach-O file or Apple .app bundle path |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--root` | `array` |  | Process root relative to the bundle or the Mach-O's directory (repeatable) |
+| `--architecture` | `string` |  | Trace only this slice of each root |
+
+# rea trace-javascript-semantics
+
+Trace bounded static semantic relations through authenticated application Evidence
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline workflow JSON or JSON file path |
+
+# rea trace-native-ui-action
+
+Trace a compiled UI action selector to its native handler and direct callees
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Target path used to bind the result evidence |
+| `action` | `string` | yes | A unique compiled UI action selector or interface object ID |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxDepth` | `number` | `8` | Maximum relationship depth |
+| `--maxNodes` | `number` | `250` | Maximum returned graph nodes |
+| `--maxEdges` | `number` | `500` | Maximum returned graph edges |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea trace-native-values
+
+Trace bounded native def-use and call dependencies
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | Local native executable or app path |
+| `procedure` | `string` | yes | Explicit native procedure symbol or address |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--maxDepth` | `number` | `3` | Maximum call traversal depth |
+| `--maxFunctions` | `number` | `16` | Maximum function decompilations |
+| `--maxCallSites` | `number` | `256` | Maximum static call-site resolutions |
+| `--maxNodes` | `number` | `5000` | Maximum retained graph nodes |
+| `--maxEdges` | `number` | `10000` | Maximum retained graph edges |
+| `--offset` | `number` | `0` | First graph node index |
+| `--limit` | `number` | `1000` | Maximum nodes on this page |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |
+
+# rea trace-web-module-imports
+
+Trace one captured script's native imports to URLs and captured source candidates
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `manifestPath` | `string` | yes | Absolute path to an export_web_scripts manifest |
+| `scriptIndex` | `number` | yes | Zero-based manifest script index |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--importerUrl` | `string` |  | Explicit HTTP(S) module URL; useful when captured inline/base context is unknown |
+| `--importMapPath` | `string` |  | Absolute local import-map JSON path; requires --import-map-base-url |
+| `--importMapBaseUrl` | `string` |  | HTTP(S) import-map base URL; requires --import-map-path |
+
+# rea trace-web-source-location
+
+Trace one retained script position through an explicitly selected local source map
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `manifestPath` | `string` | yes | Absolute export_web_scripts manifest path |
+| `scriptIndex` | `number` | yes | Zero-based manifest script index |
+| `sourceMapPath` | `string` | yes | Absolute local source-map path |
+| `sourceMapUrl` | `string` | yes | Absolute source-map URL context; no fetch |
+| `line` | `number` | yes | One-based generated line |
+| `column` | `number` | yes | Zero-based UTF-16 generated column |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--decodeTimeoutMs` | `number` |  | Source-map decode deadline in milliseconds (default 20000), for the owned codec process. Omitted means 20000 and applies on the next trace_web_source_location call. deadlineExpired returns no partial mapping. Does not raise the fixed 4 MiB map budget, 32 MiB reply budget, or 192 MiB codec heap. Those have no runtime override. |
+
+# rea uninstall
+
+Remove REA-owned agent configuration and skill files
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--purgeData` | `boolean` | `false` | Also remove REA caches and state |
+
+# rea uninstall-adb-package
+
+Uninstall one package and its data from the device
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `serial` | `string` | yes | Device serial exactly as `adb devices` reports it |
+| `package` | `string` | yes | Installed package to uninstall |
+
+# rea update
+
+Update this REA installation and verify the installed release
+
+# rea verify-managed-native-boundaries
+
+Verify managed P/Invoke declarations against authenticated native Evidence
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `inputJson` | `string` | yes | Inline managed/native verification JSON or JSON file path |
+
+# rea xrefs
+
+List bounded references to an analyzed address. Supply at least one of the positional address or --address. Equal values are accepted; conflicts fail.
+
+## Arguments
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `path` | `string` | yes | App or program path |
+| `address` | `string` | no | Address or symbol name. Supply at least one of the positional address or --address. |
+
+## Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--address` | `string` |  | Address or symbol name; use --address=<value> for leading dashes. Supply at least one of the positional address or --address. |
+| `--snapshot` | `string` |  | Load and update a local analysis snapshot |
+| `--target-format` | `string` |  | Explicit interpretation: dos-com or raw-binary (headerless), or gamecube-dol (GameCube/Wii DOL, never auto-detected); omission preserves header-based detection |
+| `--architecture` | `string` |  | Caller-supplied CPU family; required with --target-format raw-binary, must be omitted with gamecube-dol |
+| `--entry-point` | `string` |  | Caller-supplied load and entry address (0xhex); required with --target-format raw-binary, optional with gamecube-dol (must equal the DOL header entry) |
+| `--provider` | `unknown` |  | Bind deep analysis to a provider ID or use deterministic auto selection |

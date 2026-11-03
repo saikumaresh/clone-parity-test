@@ -1,0 +1,12 @@
+{
+  "name": "csv-export-clone",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "csvExport.mjs",
+  "scripts": {
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "papaparse": "^5.4.1"
+  }
+}

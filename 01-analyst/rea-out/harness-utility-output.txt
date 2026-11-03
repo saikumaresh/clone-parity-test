@@ -1,0 +1,75 @@
+starting export
+running export
+== table-basic status=completed
+"a b,\"q\"\"x\",\"c,d\"\nx,1,true\n\" lead\",,false\n\"multi\nline\",tab\tv,\"cr\rv\"\n"
+612062
+starting export
+running export
+== table-noheader status=completed
+"x,1,true\n"
+782c31
+starting export
+running export
+== query-header status=completed
+"a b;\"q\"\"x\";c,d\nx;1;true\n"
+612062
+starting export
+running export
+== query-cursorcols status=completed
+"a b,\"q\"\"x\",\"c,d\"\nx,1,true\n"
+612062
+starting export
+running export
+== empty status=completed
+"a b,\"q\"\"x\",\"c,d\"\n"
+612062
+starting export
+running export
+== baddelim status=completed
+"a b,\"q\"\"x\",\"c,d\"\n\"a\"\"b\",\"x,y\",a\tb\n"
+612062
+starting export
+running export
+== tabdelim status=completed
+"a b\t\"q\"\"x\"\tc,d\n\"a\tb\"\tx,y\t\" \"\n"
+612062
+starting export
+running export
+== multichar status=completed
+"a b||\"q\"\"x\"||c,d\n\"a||b\"||x||y\n"
+612062
+starting export
+running export
+== emptydelim status=completed
+"\"a b\"\"q\"\"x\"\"c,d\"\n\"a\"\"x\"\"y\"\n"
+226120
+starting export
+running export
+== types status=completed
+"n,big,d,o,arr,buf,u8,b1,b1n,bn,bns,num,empty,undef,formula,dateObjNoMut\n,12345678901234567000,2024-01-02T03:04:05.006Z,\"{\"\"k\"\":\"\"v\"\",\"\"n\"\":\"\"1n\"\",\"\"s\"\":\"\"a\\\"\"b\"\"}\",\"[1,\"\"2n\"\"]\",hÃ©,\"104,105\",1,0,b'1010000001000000',0101,NaN,,,=1+1,1e+21\n"
+6e2c62
+starting export
+running export
+== types-more status=completed
+"n,big,d,o,arr,buf,u8,b1,b1n,bn,bns,num\nInfinity,0,0.30000000000000004,true,{},[],,NaN,0,1,b'1111111100000001',-Infinity\n"
+6e2c62
+starting export
+running export
+== sqlserver-bit status=completed
+"bn,b\n\u0005,true\n"
+626e2c
+starting export
+running export
+== mysql-bit status=completed
+"bn,b\nb'00000101',b'00000001'\n"
+626e2c
+starting export
+running export
+== dupcols status=completed
+"id,id\n\"{\"\"id\"\":1}\"\n1,2\n"
+69642c
+starting export
+running export
+== nullcols status=completed
+"a,b\n"
+612c62
