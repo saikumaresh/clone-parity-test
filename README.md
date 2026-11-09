@@ -56,7 +56,7 @@ Expected: `total=18 match=18 mismatch=0`.
 - [03-builder](03-builder): the clone, its own tests, its log and README of choices.
 - [04-parity](04-parity): dataset, harness, report, outputs from the original and the clone.
 
-Write-up: coming on Medium. Built by [Sai Kumaresh](https://www.linkedin.com/in/sai-kumaresh/).
+Write-up: [The AI Clone Was Perfect. That's Exactly What Should Worry You.](https://medium.com/@saikumaresh/reverse-engineer-anything-ai-clone-parity-test-aedfa1573adb) Built by [Sai Kumaresh](https://www.linkedin.com/in/sai-kumaresh/).
 
 ## Licence
 GPL-3.0, the same licence as Beekeeper Studio, because this repo contains code carved from and built from it. Beekeeper Studio is a trademark of Beekeeper Studio, Inc. This project is not affiliated with them. It studies an open-source app as its licence permits.
