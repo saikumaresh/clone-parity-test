@@ -1,9 +1,9 @@
 # Clone parity test: can an AI clone a real app feature, and prove it?
 
-AI tools like REA (Reverse Engineer Anything) are being used to "clone any app" in minutes. Demos show a copy that looks identical to the original. This repo asks the question a data engineer asks before signing off a migration: **does it behave identically, byte for byte, on the data that usually breaks things?**
+AI tools like [REA (Reverse Engineer Anything)](https://github.com/morluto/rea) are being used to "clone any app" in minutes. Demos show a copy that looks identical to the original. This repo asks the question a data engineer asks before signing off a migration: **does it behave identically, byte for byte, on the data that usually breaks things?**
 
 Target: **Beekeeper Studio 6.2.0** (open source, GPL-3.0), feature: **export results to CSV**.
-Tool under test: **REA 6.8.0** (`rea-agents` on npm).
+Tool under test: **[REA 6.8.0](https://github.com/morluto/rea)** (`rea-agents` on npm, source at https://github.com/morluto/rea).
 Run: 3 to 4 November 2026, on my Mac and a cloud workspace. Every command, hash and timing is logged in this repo.
 
 ## Results at a glance
